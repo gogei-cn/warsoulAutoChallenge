@@ -1,0 +1,12 @@
+{
+  "name": "warsoul-auto-challenge",
+  "version": "1.0.0",
+  "description": "Auto challenge script for Awakening of War Soul",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "playwright": "^1.42.0"
+  }
+}

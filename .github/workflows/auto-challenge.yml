@@ -1,0 +1,61 @@
+name: War Soul Auto Challenge
+
+on:
+  schedule: # 每天8点执行一次
+    - cron: "0 8 * * *"
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  auto-challenge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Cache Playwright Browsers
+        id: cache-playwright
+        uses: actions/cache@v4
+        with:
+          path: ~\AppData\Local\ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        if: steps.cache-playwright.outputs.cache-hit != 'true'
+        run: npx playwright install chromium
+
+      - name: Run worker script
+        shell: pwsh
+        env:
+          WARSOUL_USERNAME: ${{ secrets.WARSOUL_USERNAME }}
+          WARSOUL_PASSWORD: ${{ secrets.WARSOUL_PASSWORD }}
+        run: node index.js
+
+      - name: Upload artifacts (Screenshots)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: |
+            status*.png
+            error*.png
+
+  workflow-keepalive:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Keep workflow alive
+        uses: liskin/gh-workflow-keepalive@v1
