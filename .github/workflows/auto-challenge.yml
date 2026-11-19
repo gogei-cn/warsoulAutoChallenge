@@ -7,6 +7,7 @@ on:
 
 jobs:
   auto-challenge:
+    # Playwright 1.61+ 已支持 Ubuntu 26.04，可继续跟随 ubuntu-latest
     runs-on: ubuntu-latest
 
     steps:
@@ -23,7 +24,7 @@ jobs:
         id: cache-playwright
         uses: actions/cache@v4
         with:
-          path: ~\AppData\Local\ms-playwright
+          path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-playwright-
@@ -33,7 +34,7 @@ jobs:
 
       - name: Install Playwright Browsers
         if: steps.cache-playwright.outputs.cache-hit != 'true'
-        run: npx playwright install chromium
+        run: npx playwright install --with-deps chromium
 
       - name: Run worker script
         shell: pwsh
